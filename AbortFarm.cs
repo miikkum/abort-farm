@@ -33,7 +33,7 @@ namespace AbortFarm
             // List the sources for the resource and attached drop rates
             // TODO: Times are fictional, so more 'real' times should be added. Cambion drift endless is weird, so it's not correctly implemented. At all.
 
-            Source ghoul15 = new Source("Ghoul Purge 15-25",4,new int[] { 73, 164, 240, 320 }, new double[]{ 0.2647, 0.0874, 0.0874,0 }); sources.Add(ghoul15);
+            Source ghoul15 = new Source("Ghoul Purge 15-25",4,new int[] { 70, 164, 240, 320 }, new double[]{ 0.2647, 0.0874, 0.0874,0 }); sources.Add(ghoul15);
             //Source ghoul40 = new Source("Ghoul Purge 40-50",4, new int[] { 90, 165, 240, 320 }, new double[] { 0.2647, 0.0874, 0.0874, 0 }); sources.Add(ghoul40);
             //Source cetus10 = new Source("Cetus bounty 10-30",3, new int[] { 84, 164, 240 }, new double[] { 0, 0.0588, 0.1458, 0.1458 }); sources.Add(cetus10);
             //Source cetus20A = new Source("Cetus bounty 20-40 Rotation A", 4, new int[] { 84, 164, 240, 320 }, new double[] { 0, 0.0734, 0.0734, 0.2, 0.2 }); sources.Add(cetus20A);
@@ -46,7 +46,7 @@ namespace AbortFarm
             //Source vallis10 = new Source("Orb Vallis bounty 10-30", 3, new int[] { 84, 164, 240 }, new double[] { 0, 0.0588, 0.2, 0.2 }); sources.Add(vallis10);
             //Source vallis20 = new Source("Orb Vallis bounty 20-40", 4, new int[] { 84, 164, 240, 300 }, new double[] { 0, 0.125, 0.125, 0.25, 0.25 }); sources.Add(vallis20);
             //Source vallis30 = new Source("Orb Vallis bounty 30-50", 5, new int[] { 84, 164, 240, 300, 370 }, new double[] { 0, 0.1473, 0.1473, 0.1304, 0.4488, 0.4488 }); sources.Add(vallis30);
-            Source vallis40 = new Source("Orb Vallis bounty 40-60", 5, new int[] { 84, 164, 240, 300, 370 }, new double[] { 0, 0.25, 0.25, 0.2143, 0.5, 0.5 }); sources.Add(vallis40);
+            Source vallis40 = new Source("Orb Vallis bounty 40-60", 5, new int[] { 84, 164, 240, 300, 453 }, new double[] { 0, 0.25, 0.25, 0.2143, 0.5, 0.5 }); sources.Add(vallis40);
             //Source necralisk5 = new Source("Cambion Drift bounty 5-15", 3, new int[] { 84, 164, 240 }, new double[] { 0, 0.0752, 0.3056, 0.3056 }); sources.Add(necralisk5);
             //Source necralisk15 = new Source("Cambion Drift bounty 15-25", 3, new int[] { 84, 164, 240 }, new double[] { 0, 0.1471, 0.2, 0.2 }); sources.Add(necralisk15);
             //Source necralisk25A = new Source("Cambion Drift bounty 25-30 (Endless Rotation A)", 3, new int[] { 84, 164, 240 }, new double[] { 0.0526, 0.0526, 0.0649 }); sources.Add(necralisk25A);
@@ -59,7 +59,11 @@ namespace AbortFarm
             string minString = "";
             int min = 20000;
 
-            // To get the expected time per resource, we use [time for completing a stage] / [expected number of drops per stage]
+            // To get the average time per resource, we use [time for completion] / [resource drop rate]
+            // Since we're looking at multiple consecutive stages we need to use some probability theory
+            // If a stage has 25% drop and the next stage has 20% drop rate, we check the compound probability like so;
+            // 1 - ([Probability of NOT getting resource from stage 1] * [Probability of NOT getting resource from stage 2])
+            // 1 - (0.75 * 0.8) = 1 - 60% = 40%. In this example, we expect getting the resource 40% of the time if we do two stages before aborting
             foreach (Source s in sources)
             {
                 // We want to evaluate aborting after each stage to find how many stages we want to complete
@@ -77,7 +81,7 @@ namespace AbortFarm
                         }
                     }
 
-                    if(expected != 0)
+                    if(s.dropRates[i] != 0)
                     {
                         // We can store the fastest found method
                         if (s.clearSeconds[i] / expected < min)
