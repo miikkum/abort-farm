@@ -22,7 +22,7 @@ namespace AbortFarm
             ArrayList sources = new ArrayList();
 
             // 4 parameters for a drop location: name, number of stages, list of completion times up to and including a stage
-            // ({120,240} means a minute for stage 1, two minutes to complete two stages), list of drop rates per stage
+            // ({120,240} means two minutes for stage 1, four minutes to complete two stages), list of drop rates per stage
             // If a stage has a bonus drop (i.e. open world bounties), just add the drop rate again at the end
             // Example attributes;
             // "Cambion Drift bounty 5-15", 3, new int[] { 84, 164, 240 }, new double[] { 0, 0.0752, 0.3056, 0.3056 }
