@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 
 namespace AbortFarm
@@ -59,52 +59,46 @@ namespace AbortFarm
             string minString = "";
             int min = 20000;
 
-            // To get the average time per resource, we use [time for completion] / [resource drop rate]
-            // Since we're looking at multiple consecutive stages we need to use some probability theory
-            // If a stage has 25% drop and the next stage has 20% drop rate, we check the compound probability like so;
-            // 1 - ([Probability of NOT getting resource from stage 1] * [Probability of NOT getting resource from stage 2])
-            // 1 - (0.75 * 0.8) = 1 - 60% = 40%. In this example, we expect getting the resource 40% of the time if we do two stages before aborting
+            // To get the expected time per resource, we use [time for completing a stage] / [expected number of drops per stage]
             foreach (Source s in sources)
             {
                 // We want to evaluate aborting after each stage to find how many stages we want to complete
                 for (int i = 0; i < s.stages; i++)
                 {
-                    double prob = 1;
-                    double bonusprob = 1;
+                    double expected = 0;
+                    bool bonus = false;
                     for(int j = 0; j <= i; j++)
                     {
-                        // Probability of NOT getting the resource
-                        prob *= (1-s.dropRates[j]);
+                        expected += s.dropRates[j];
                         if( j == s.stages-1 && s.dropRates.Length > s.stages)
                         {
-                            bonusprob = prob*(1 - s.dropRates[j+1]);
+                            expected += s.dropRates[j + 1];
+                            bonus = true;
                         }
                     }
 
-                    // The probability of actually getting the resource = 100% - Chance not getting the resource
-                    prob = (1 - prob);
-                    bonusprob = (1 - bonusprob);
-
-                    if(prob != 0)
+                    if(expected != 0)
                     {
                         // We can store the fastest found method
-                        if (s.clearSeconds[i] / prob < min)
+                        if (s.clearSeconds[i] / expected < min)
                         {
-                            min = (int)(s.clearSeconds[i] / prob);
-                            minString = "Fastest: " + s.name + " stage " + (i + 1) + " - " + (int)(s.clearSeconds[i]/prob) + " seconds per " + resource;
+                            min = (int)(s.clearSeconds[i] / expected);
+                            minString = "Fastest: " + s.name + " stage " + (i + 1);
+                            if (bonus)
+                            {
+                                minString += " with bonus";
+                            }
+                            minString += " - " + (int)(s.clearSeconds[i]/ expected) + " seconds per " + resource;
                         }
                         // Print evaluation for each stage (seconds per resource)
-                        Console.WriteLine(s.name + " stage " + (i+1) + " (" + s.clearSeconds[i] + "s): " + (int)(s.clearSeconds[i] / prob) + " seconds per " + resource);
-                        // Check if there is a bonus attached to the bounty and how it affects the efficiency
-                        if (bonusprob != 0)
+                        string line = s.name + " stage " + (i + 1);
+                        if (bonus)
                         {
-                            if (s.clearSeconds[i] / bonusprob < min)
-                            {
-                                min = (int)(s.clearSeconds[i] / bonusprob);
-                                minString = "Fastest: " + s.name + " stage " + (i + 1) + " with bonus - " + (int)(s.clearSeconds[i] / bonusprob) + " seconds per " + resource;
-                            }
-                            Console.WriteLine(s.name + " stage " + (i + 1) + " with bonus (" + s.clearSeconds[i] + "s): " + (int)(s.clearSeconds[i] / bonusprob) + " seconds per " + resource);
+                            line += " with bonus";
                         }
+                        line += " (" + s.clearSeconds[i] + "s): " + (int)(s.clearSeconds[i] / expected) + " seconds per " + resource;
+                        Console.WriteLine(line);
+                        // Check if there is a bonus attached to the bounty and how it affects the efficiency
                     }
                 }
             }
